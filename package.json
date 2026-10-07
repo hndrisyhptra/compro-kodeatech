@@ -1,0 +1,60 @@
+{
+  "name": "kodea-tech",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start --hostname 127.0.0.1",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:dev": "prisma migrate dev",
+    "db:seed": "node --env-file=.env --import tsx database/seed.ts",
+    "postinstall": "prisma generate",
+    "db:export": "node --env-file=.env --import tsx scripts/export-sql.ts",
+    "format": "node scripts/format.mjs",
+    "db:check": "node --env-file=.env scripts/check-database.mjs",
+    "admin:reset-password": "node --env-file=.env scripts/reset-admin-password.mjs",
+    "test:media": "node --env-file=.env scripts/test-media.mjs"
+  },
+  "dependencies": {
+    "next": "^16.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "@prisma/client": "6.19.0",
+    "bcryptjs": "^3.0.2",
+    "zod": "^4.3.6",
+    "lucide-react": "^0.577.0",
+    "framer-motion": "^12.35.2",
+    "sharp": "^0.35.5",
+    "sanitize-html": "^2.17.0",
+    "@tiptap/react": "^3.20.0",
+    "@tiptap/starter-kit": "^3.20.0",
+    "@tiptap/extension-image": "^3.20.0"
+  },
+  "devDependencies": {
+    "prisma": "6.19.0",
+    "typescript": "^5.9.3",
+    "tsx": "^4.21.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/sanitize-html": "^2.16.0",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "^16.2.0",
+    "tailwindcss": "^4.2.1",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@playwright/test": "^1.58.2"
+  },
+  "prisma": {
+    "schema": "database/schema.prisma",
+    "seed": "tsx database/seed.ts"
+  },
+  "overrides": {
+    "effect": "^3.20.0",
+    "deepmerge-ts": "^8.0.0"
+  }
+}

@@ -1,0 +1,33 @@
+import { cleanHtml } from "@/lib/html";
+import Link from "next/link";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { ArrowRight, Check, ArrowUpRight } from "lucide-react";
+import { listContent } from "@/services/content";
+import { pageMetadata } from "@/services/seo";
+import { ServiceIcon } from "@/components/icons";
+import { ProjectArt } from "@/components/project-art";
+import { arrayValue, obj, stringValue, jsonLd, siteUrl, safeUrl } from "@/lib/utils";
+const valid = ["services", "solutions", "portfolio", "blog"] as const;
+type Props = {
+    params: Promise<{
+        section: string;
+        slug: string;
+    }>;
+    searchParams: Promise<{
+        lang?: string;
+    }>;
+};
+async function load({ params, searchParams }: Props) {
+    const { section, slug } = await params;
+    if (!valid.includes(section as typeof valid[number]))
+        notFound();
+    const locale = (await searchParams).lang === "id" ? "id" : "en";
+    const items = await listContent(section as typeof valid[number], true, locale);
+    const item = items.find(i => i.slug === slug);
+    if (!item)
+        notFound();
+    return { section, slug, item };
+}
+export async function generateMetadata(props: Props) { const { section, slug, item } = await load(props); return pageMetadata(`/${section}/${slug}`, item); }
+export default async function Detail(props: Props) { const { section, slug, item } = await load(props), data = obj(item.data); const breadcrumbs = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: siteUrl() }, { "@type": "ListItem", position: 2, name: section, item: `${siteUrl()}/${section}` }, { "@type": "ListItem", position: 3, name: item.title, item: `${siteUrl()}/${section}/${slug}` }] }; const structured = section === "blog" ? { "@context": "https://schema.org", "@type": "Article", headline: item.title, description: item.excerpt, datePublished: item.publishedAt?.toISOString(), dateModified: item.updatedAt.toISOString(), author: { "@type": "Organization", name: stringValue(data.author, "KodeaTech") }, ...(item.image ? { image: new URL(item.image, siteUrl()).toString() } : {}) } : section === "services" ? { "@context": "https://schema.org", "@type": "Service", name: item.title, description: item.excerpt, provider: { "@type": "Organization", name: "KODEA TECH", url: siteUrl() } } : null; return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }}/>{structured && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(structured) }}/>}<section className="container detail-hero"><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><Link href={`/${section}`}>{section}</Link><span>/</span><span>{item.title}</span></nav><span className="eyebrow">{stringValue(data.category, section.toUpperCase())}</span><h1>{item.title}</h1><p>{item.excerpt}</p>{section === "blog" && <div className="article-byline">{stringValue(data.author)}<span>·</span>{item.publishedAt?.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}<span>·</span>{stringValue(data.readTime)}</div>}{data.demo === "true" && <div className="demo-notice">Demonstration case study. This example illustrates our approach and is not a claim of delivered client work.</div>}</section><section className="container detail-body">{item.image ? <Image className="detail-cover" src={item.image} alt={item.title} width={1400} height={750} sizes="100vw" priority/> : section === "portfolio" ? <div className="detail-project-art"><ProjectArt variant={stringValue(data.illustration)}/></div> : section === "services" ? <div className="service-detail-banner"><ServiceIcon name={stringValue(data.icon)} size={90}/><span>IDEAS → ENGINEERING → IMPACT</span></div> : null}<div className="detail-layout"><article><div className="prose" dangerouslySetInnerHTML={{ __html: cleanHtml(item.content) }}/>{section === "portfolio" && <>{["challenge", "solution", "result"].map((key, i) => <div className="case-section" key={key}><span className="eyebrow">0{i + 1} — {key.toUpperCase()}</span><h2>{key === "challenge" ? "The challenge" : key === "solution" ? "The approach" : "The outcome"}</h2><p>{stringValue(data[key])}</p></div>)}<div className="case-metrics">{arrayValue(data.metrics).map(m => <div key={m}><strong>{m.split("|")[0]}</strong><span>{m.split("|")[1]}</span></div>)}</div><div className="gallery">{arrayValue(data.gallery).map((url, i) => <Image key={url} src={url} width={900} height={600} sizes="(max-width: 768px) 100vw, 60vw" alt={`${item.title} — gallery image ${i + 1}`}/>)}</div></>}{arrayValue(data.benefits).length > 0 && <section className="case-section"><span className="eyebrow">BUILT TO MAKE A DIFFERENCE</span><h2>What this means for your business.</h2><ul className="benefits-list">{arrayValue(data.benefits).map(b => <li key={b}><Check size={20}/>{b}</li>)}</ul></section>}{arrayValue(data.features).length > 0 && <section className="case-section"><h2>What’s included.</h2><div className="feature-grid">{arrayValue(data.features).map((f, i) => <div key={f}><span>0{i + 1}</span><h3>{f}</h3></div>)}</div></section>}{arrayValue(data.workflow).length > 0 && <section className="case-section"><span className="eyebrow">A CLEAR PATH FORWARD</span><h2>From first conversation to launch.</h2><ol className="workflow-list">{arrayValue(data.workflow).map(w => <li key={w}>{w}<ArrowRight size={18}/></li>)}</ol></section>}{arrayValue(data.faq).length > 0 && <section className="case-section"><h2>A few things you might ask.</h2><div className="faq-list">{arrayValue(data.faq).map(q => <details key={q}><summary>{q.split("|")[0]}</summary><p>{q.split("|").slice(1).join("|")}</p></details>)}</div></section>}</article><aside className="detail-aside">{section === "portfolio" && <><small>CLIENT</small><p>{stringValue(data.client)}</p><small>PROJECT</small><p>{stringValue(data.projectDate)}</p></>}{arrayValue(data.technology).length > 0 && <><small>TECHNOLOGY</small><div className="tag-list">{arrayValue(data.technology).map(t => <span key={t}>{t}</span>)}</div></>}{stringValue(data.websiteUrl) && <a className="text-button" href={safeUrl(stringValue(data.websiteUrl))} target="_blank" rel="noopener noreferrer">Visit website<ArrowUpRight size={16}/></a>}<h3>Thinking about<br />what’s next?</h3><p>Let’s find the right way forward together.</p><Link href="/contact" className="button">Let’s talk<ArrowUpRight size={16}/></Link><Link href={`/${section}`} className="text-button">Back to {section}<ArrowRight size={15}/></Link></aside></div></section></>; }

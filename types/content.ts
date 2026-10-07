@@ -1,0 +1,60 @@
+import type { Prisma } from "@prisma/client";
+export interface ContentRecord {
+    id: string;
+    title: string;
+    slug: string;
+    locale: string;
+    excerpt: string;
+    content: string;
+    image: string;
+    status: string;
+    featured: boolean;
+    sortOrder: number;
+    data: Prisma.JsonValue;
+    seoTitle: string;
+    seoDescription: string;
+    ogImage: string;
+    canonical: string;
+    keywords: string;
+    publishedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface SiteSettings {
+    companyName: string;
+    tagline: string;
+    logo: string;
+    favicon: string;
+    email: string;
+    phone: string;
+    whatsapp: string;
+    address: string;
+    mapsUrl: string;
+    linkedin: string;
+    instagram: string;
+    github: string;
+    copyright: string;
+    heroImage?: string;
+    aboutImage?: string;
+    heroLabel: string;
+    heroTitle: string;
+    heroAccent: string;
+    heroSubtitle: string;
+    ctaLabel: string;
+    ctaUrl: string;
+    secondaryCtaLabel: string;
+    secondaryCtaUrl: string;
+    aboutTitle: string;
+    aboutText: string;
+    stats: {
+        value: string;
+        label: string;
+    }[];
+    technologiesIntro: string;
+    gaId: string;
+    searchVerification: string;
+    seoTitle: string;
+    seoDescription: string;
+    ogImage: string;
+    supportLabel: string;
+}

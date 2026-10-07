@@ -1,0 +1,7 @@
+import type { Metadata } from "next";
+import { db } from "@/lib/db";
+import { getSettings } from "./settings";
+import { siteUrl, safeUrl } from "@/lib/utils";
+import type { ContentRecord } from "@/types/content";
+import { faviconUrl } from "@/lib/branding";
+export async function pageMetadata(path: string, record?: ContentRecord | null): Promise<Metadata> { const [settings, override] = await Promise.all([getSettings(), db.seoMetadata.findUnique({ where: { path } })]); const title = override?.title || record?.seoTitle || record?.title || settings.seoTitle; const description = override?.description || record?.seoDescription || record?.excerpt || settings.seoDescription; const canonical = record?.canonical || override?.canonical || path; const image = record?.ogImage || record?.image || override?.ogImage || settings.ogImage; const images = image && safeUrl(image) !== "#" ? [new URL(image, siteUrl()).toString()] : []; return { metadataBase: new URL(siteUrl()), title, description, keywords: record?.keywords || override?.keywords || undefined, alternates: { canonical: new URL(canonical, siteUrl()).toString() }, openGraph: { title, description, url: new URL(path, siteUrl()).toString(), siteName: settings.companyName, type: path.startsWith("/blog/") ? "article" : "website", images }, twitter: { card: images.length ? "summary_large_image" : "summary", title, description, images }, icons: { icon: faviconUrl(settings.favicon) }, verification: { google: process.env.GOOGLE_SITE_VERIFICATION || settings.searchVerification || undefined } }; }

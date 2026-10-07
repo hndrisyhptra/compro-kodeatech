@@ -1,0 +1,2 @@
+import sanitize from "sanitize-html";
+export function cleanHtml(s: string) { return sanitize(s, { allowedTags: ["p", "h2", "h3", "h4", "strong", "em", "a", "ul", "ol", "li", "blockquote", "pre", "code", "br", "img"], allowedAttributes: { a: ["href", "target", "rel"], img: ["src", "alt", "width", "height"] }, allowedSchemes: ["http", "https", "mailto"], transformTags: { a: sanitize.simpleTransform("a", { rel: "noopener noreferrer" }) } }); }

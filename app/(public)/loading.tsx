@@ -1,0 +1,1 @@
+export default function Loading() { return <div className="container section" role="status" aria-label="Loading content"><div className="skeleton" style={{ height: 20, width: 180 }}/><div className="skeleton" style={{ height: 100, width: "70%", marginTop: 30 }}/><div className="skeleton" style={{ height: 300, marginTop: 40 }}/></div>; }

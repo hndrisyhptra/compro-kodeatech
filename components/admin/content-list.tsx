@@ -1,0 +1,15 @@
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import { Plus, Search, Pencil, Trash2, FileText } from "lucide-react";
+import type { ContentRecord } from "@/types/content";
+import { resourceLabels, type Resource } from "@/features/cms/config";
+import { useAdmin } from "@/hooks/use-admin";
+import { Notice } from "./notice";
+import { Confirm } from "./confirm";
+export function ContentList({ items, resource, csrf, canWrite }: {
+    items: ContentRecord[];
+    resource: Resource;
+    csrf: string;
+    canWrite: boolean;
+}) { const [query, setQuery] = useState(""), [status, setStatus] = useState("all"), [pending, setPending] = useState<string | null>(null), { request, busy, notice } = useAdmin(csrf); const visible = items.filter(i => (status === "all" || i.status === status) && `${i.title} ${i.slug}`.toLowerCase().includes(query.toLowerCase())); return <><div className="admin-page-heading"><div><span className="eyebrow">CONTENT MANAGEMENT</span><h1>{resourceLabels[resource]}</h1><p>Keep your website current, one good story at a time.</p></div>{canWrite && <Link href={`/admin/${resource}/new`} className="button"><Plus size={17}/>Add {resource === "portfolio" ? "project" : resource === "blog" ? "post" : "item"}</Link>}</div><div className="admin-panel"><div className="table-toolbar"><div className="input-search"><Search size={17}/><input aria-label="Search content" placeholder="Search by title or slug…" value={query} onChange={e => setQuery(e.target.value)}/></div><select aria-label="Filter publication status" value={status} onChange={e => setStatus(e.target.value)}><option value="all">All statuses</option><option>published</option><option>draft</option><option>scheduled</option></select><span>{visible.length} items</span></div><div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Title</th><th>Status</th><th>Language</th><th>Order</th><th>Updated</th><th>Actions</th></tr></thead><tbody>{visible.map(i => <tr key={i.id}><td><Link href={`/admin/${resource}/${i.id}`}><strong>{i.title}{i.featured && <span className="featured-dot" title="Featured"/>}</strong><small>/{i.slug}</small></Link></td><td><span className={`badge ${i.status}`}>{i.status}</span></td><td>{i.locale.toUpperCase()}</td><td>{i.sortOrder}</td><td>{new Date(i.updatedAt).toLocaleDateString("en-US")}</td><td><div className="row-actions"><Link className="icon-button" title="Edit item" aria-label={`Edit ${i.title}`} href={`/admin/${resource}/${i.id}`}><Pencil size={16}/></Link>{canWrite && <button className="icon-button" disabled={busy} aria-label={`Delete ${i.title}`} onClick={() => setPending(i.id)}><Trash2 size={16}/></button>}</div></td></tr>)}</tbody></table></div>{!visible.length && <div className="empty-state"><FileText size={30}/><h3>{items.length ? "No matching content." : "A blank canvas."}</h3><p>{items.length ? "Try another search or status." : "Add your first item to get started."}</p></div>}</div><Notice notice={notice}/><Confirm open={!!pending} onCancel={() => setPending(null)} onConfirm={() => request(`/api/admin/content/${resource}`, { id: pending }, "DELETE")}/></>; }

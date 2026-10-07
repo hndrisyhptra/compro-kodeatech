@@ -1,0 +1,347 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+}
+
+model Role {
+ id String @id @default(cuid())
+ name String @unique
+ users User[]
+ @@map("roles")
+}
+model User {
+ id String @id @default(cuid())
+ name String
+ email String @unique @db.VarChar(255)
+ passwordHash String
+ active Boolean @default(true)
+ roleId String
+ role Role @relation(fields:[roleId],references:[id])
+ sessions Session[]
+ posts BlogPost[]
+ createdAt DateTime @default(now())
+ @@map("users")
+}
+model Session {
+ id String @id @default(cuid())
+ tokenHash String @unique
+ csrfToken String
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+ @@index([expiresAt])
+ @@map("sessions")
+}
+model Setting {
+ key String @id
+ value Json
+ updatedAt DateTime @updatedAt
+ @@map("settings")
+}
+model SeoMetadata {
+ id String @id @default(cuid())
+ path String @unique
+ title String @db.VarChar(255)
+ description String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ @@map("seo_metadata")
+}
+model Media {
+ id String @id @default(cuid())
+ filename String @unique
+ originalName String @db.VarChar(255)
+ mime String
+ size Int
+ width Int
+ height Int
+ alt String @db.Text
+ title String @default("") @db.VarChar(255)
+ description String @db.Text
+ createdAt DateTime @default(now())
+ @@map("media")
+}
+model ContactMessage {
+ id String @id @default(cuid())
+ name String
+ company String @default("")
+ email String
+ phone String @default("")
+ service String
+ budget String @default("")
+ message String @db.Text
+ status String @default("unread")
+ notes String @db.Text
+ createdAt DateTime @default(now())
+ @@index([status,createdAt])
+ @@map("contact_messages")
+}
+model RateLimit {
+ key String @id
+ count Int @default(1)
+ resetAt DateTime
+ @@index([resetAt])
+ @@map("rate_limits")
+}
+model BlogCategory {
+ id String @id @default(cuid())
+ name String @unique
+ slug String @unique
+ posts BlogPost[]
+ @@map("blog_categories")
+}
+model BlogTag {
+ id String @id @default(cuid())
+ name String @unique
+ slug String @unique
+ posts BlogPost[] @relation("PostTags")
+ @@map("blog_tags")
+}
+
+model Page {
+ id String @id @default(cuid())
+ title String @db.VarChar(255)
+ slug String
+ locale String @default("en")
+ excerpt String @db.Text
+ content String @db.LongText
+ image String @default("") @db.VarChar(2048)
+ status String @default("draft")
+ featured Boolean @default(false)
+ sortOrder Int @default(0)
+ data Json
+ seoTitle String @default("") @db.VarChar(255)
+ seoDescription String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([slug,locale])
+ @@index([status,locale,sortOrder])
+ @@map("pages")
+}
+
+model Service {
+ id String @id @default(cuid())
+ title String @db.VarChar(255)
+ slug String
+ locale String @default("en")
+ excerpt String @db.Text
+ content String @db.LongText
+ image String @default("") @db.VarChar(2048)
+ status String @default("draft")
+ featured Boolean @default(false)
+ sortOrder Int @default(0)
+ data Json
+ seoTitle String @default("") @db.VarChar(255)
+ seoDescription String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([slug,locale])
+ @@index([status,locale,sortOrder])
+ @@map("services")
+}
+
+model Solution {
+ id String @id @default(cuid())
+ title String @db.VarChar(255)
+ slug String
+ locale String @default("en")
+ excerpt String @db.Text
+ content String @db.LongText
+ image String @default("") @db.VarChar(2048)
+ status String @default("draft")
+ featured Boolean @default(false)
+ sortOrder Int @default(0)
+ data Json
+ seoTitle String @default("") @db.VarChar(255)
+ seoDescription String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([slug,locale])
+ @@index([status,locale,sortOrder])
+ @@map("solutions")
+}
+
+model Portfolio {
+ id String @id @default(cuid())
+ title String @db.VarChar(255)
+ slug String
+ locale String @default("en")
+ excerpt String @db.Text
+ content String @db.LongText
+ image String @default("") @db.VarChar(2048)
+ status String @default("draft")
+ featured Boolean @default(false)
+ sortOrder Int @default(0)
+ data Json
+ seoTitle String @default("") @db.VarChar(255)
+ seoDescription String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ images PortfolioImage[]
+ technologies Technology[] @relation("ProjectTechnologies")
+ @@unique([slug,locale])
+ @@index([status,locale,sortOrder])
+ @@map("portfolio")
+}
+
+model Technology {
+ id String @id @default(cuid())
+ title String @db.VarChar(255)
+ slug String
+ locale String @default("en")
+ excerpt String @db.Text
+ content String @db.LongText
+ image String @default("") @db.VarChar(2048)
+ status String @default("draft")
+ featured Boolean @default(false)
+ sortOrder Int @default(0)
+ data Json
+ seoTitle String @default("") @db.VarChar(255)
+ seoDescription String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ projects Portfolio[] @relation("ProjectTechnologies")
+ @@unique([slug,locale])
+ @@index([status,locale,sortOrder])
+ @@map("technologies")
+}
+
+model Testimonial {
+ id String @id @default(cuid())
+ title String @db.VarChar(255)
+ slug String
+ locale String @default("en")
+ excerpt String @db.Text
+ content String @db.LongText
+ image String @default("") @db.VarChar(2048)
+ status String @default("draft")
+ featured Boolean @default(false)
+ sortOrder Int @default(0)
+ data Json
+ seoTitle String @default("") @db.VarChar(255)
+ seoDescription String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([slug,locale])
+ @@index([status,locale,sortOrder])
+ @@map("testimonials")
+}
+
+model Partner {
+ id String @id @default(cuid())
+ title String @db.VarChar(255)
+ slug String
+ locale String @default("en")
+ excerpt String @db.Text
+ content String @db.LongText
+ image String @default("") @db.VarChar(2048)
+ status String @default("draft")
+ featured Boolean @default(false)
+ sortOrder Int @default(0)
+ data Json
+ seoTitle String @default("") @db.VarChar(255)
+ seoDescription String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([slug,locale])
+ @@index([status,locale,sortOrder])
+ @@map("partners")
+}
+
+model TeamMember {
+ id String @id @default(cuid())
+ title String @db.VarChar(255)
+ slug String
+ locale String @default("en")
+ excerpt String @db.Text
+ content String @db.LongText
+ image String @default("") @db.VarChar(2048)
+ status String @default("draft")
+ featured Boolean @default(false)
+ sortOrder Int @default(0)
+ data Json
+ seoTitle String @default("") @db.VarChar(255)
+ seoDescription String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([slug,locale])
+ @@index([status,locale,sortOrder])
+ @@map("team_members")
+}
+
+model BlogPost {
+ id String @id @default(cuid())
+ title String @db.VarChar(255)
+ slug String
+ locale String @default("en")
+ excerpt String @db.Text
+ content String @db.LongText
+ image String @default("") @db.VarChar(2048)
+ status String @default("draft")
+ featured Boolean @default(false)
+ sortOrder Int @default(0)
+ data Json
+ seoTitle String @default("") @db.VarChar(255)
+ seoDescription String @db.Text
+ ogImage String @default("") @db.VarChar(2048)
+ canonical String @default("") @db.VarChar(2048)
+ keywords String @db.Text
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ authorId String?
+ author User? @relation(fields:[authorId],references:[id],onDelete:SetNull)
+ categoryId String?
+ category BlogCategory? @relation(fields:[categoryId],references:[id],onDelete:SetNull)
+ tags BlogTag[] @relation("PostTags")
+ @@unique([slug,locale])
+ @@index([status,locale,sortOrder])
+ @@map("blog_posts")
+}
+
+model PortfolioImage {
+ id String @id @default(cuid())
+ portfolioId String
+ portfolio Portfolio @relation(fields:[portfolioId],references:[id],onDelete:Cascade)
+ url String @db.Text
+ alt String @db.Text
+ sortOrder Int @default(0)
+ @@map("portfolio_images")
+}

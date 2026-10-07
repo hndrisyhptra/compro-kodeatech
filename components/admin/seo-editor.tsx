@@ -1,0 +1,13 @@
+"use client";
+import { useCallback, useState } from "react";
+import { ImageField } from "./image-picker";
+import { Save, Plus, Globe } from "lucide-react";
+import type { SeoMetadata } from "@prisma/client";
+import { useAdmin } from "@/hooks/use-admin";
+import { Notice } from "./notice";
+const blank = { path: "/", title: "", description: "", ogImage: "", canonical: "", keywords: "" };
+export function SEOEditor({ items, csrf, canWrite }: {
+    items: SeoMetadata[];
+    csrf: string;
+    canWrite: boolean;
+}) { const [uploads, setUploads] = useState(0); const uploadActivity = useCallback((active: boolean) => setUploads(n => Math.max(0, n + (active ? 1 : -1))), []); const [data, setData] = useState<typeof blank>(items[0] || blank), { request, busy, notice } = useAdmin(csrf); return <><div className="admin-page-heading"><div><span className="eyebrow">HELP THE RIGHT PEOPLE FIND YOU</span><h1>Search & sharing</h1><p>Manage page metadata. Service, project, and blog SEO is edited with each item.</p></div>{canWrite && <button className="button secondary" disabled={uploads > 0} onClick={() => setData(blank)}><Plus size={16}/>Add page metadata</button>}</div><div className="settings-layout"><nav className="settings-nav" aria-label="SEO pages">{items.map(i => <button disabled={uploads > 0} key={i.id} className={data.path === i.path ? "active" : ""} onClick={() => setData(i)}><Globe size={15}/>{i.path}</button>)}</nav><form className="admin-panel settings-fields" onSubmit={e => { e.preventDefault(); if (uploads || busy || !canWrite) return; request("/api/admin/seo", data); }}><h2>Page metadata</h2><fieldset disabled={!canWrite}>{[["path", "Page path"], ["title", "SEO title"], ["description", "Meta description"], ["ogImage", "Open Graph image"], ["canonical", "Canonical URL"], ["keywords", "Meta keywords"]].map(([key, label]) => key === "ogImage" ? <ImageField key={key} label={label} value={data.ogImage} csrf={csrf} disabled={!canWrite} onUploadActivity={uploadActivity} onChange={urls => setData(d => ({ ...d, ogImage: urls[0] || "" }))}/> : <label key={key}>{label}{key === "description" ? <textarea rows={3} value={data.description} onChange={e => setData({ ...data, description: e.target.value })}/> : <input required={key === "path"} value={data[key as keyof typeof blank]} onChange={e => setData({ ...data, [key]: e.target.value })}/>}</label>)}</fieldset><div className="seo-preview"><small>SEARCH RESULT PREVIEW</small><strong>{data.title || "Your page title"}</strong><span>kodeatech.cloud{data.path}</span><p>{data.description}</p></div>{canWrite && <button className="button" disabled={busy || uploads > 0}><Save size={16}/>Save metadata</button>}</form></div><Notice notice={notice}/></>; }
