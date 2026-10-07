@@ -2,14 +2,29 @@ import { resources } from "@/features/cms/config";
 import { listContent } from "@/services/content";
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile, unlink } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import { db } from "@/lib/db";
 import { authorizeWrite, requireSession, HttpError } from "@/lib/auth";
 import { apiError, readJson } from "@/lib/api";
-import { mediaPath } from "@/lib/storage";
+import { mediaPath, removeMediaFile } from "@/lib/storage";
 import { z } from "zod";
+
+function mediaError(error: unknown) {
+    const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
+    const messages: Record<string, string> = {
+        EACCES: "Media storage is not writable. Ask your administrator to check folder ownership and permissions.",
+        EPERM: "Media storage permissions prevented this action. Ask your administrator to check folder ownership and permissions.",
+        EROFS: "Media storage is read-only. Ask your administrator to enable writing to the storage folder.",
+        ENOSPC: "Media storage is full. Free up server disk space and try again.",
+    };
+    if (typeof code === "string" && messages[code]) {
+        console.error("Media storage operation failed:", error);
+        return apiError(new HttpError(500, messages[code]));
+    }
+    return apiError(error);
+}
 export async function GET(request: Request) {
     try {
         await requireSession();
@@ -55,12 +70,12 @@ export async function POST(request: Request) {
             return NextResponse.json(media, { status: 201 });
         }
         catch (e) {
-            await unlink(target);
+            await removeMediaFile(filename).catch(cleanupError => console.error("Uploaded media cleanup failed:", cleanupError));
             throw e;
         }
     }
     catch (e) {
-        return apiError(e);
+        return mediaError(e);
     }
 }
 export async function PATCH(request: Request) {
@@ -78,16 +93,18 @@ export async function DELETE(request: Request) {
     try {
         await authorizeWrite(request);
         const { id } = z.object({ id: z.string() }).parse(await readJson(request));
-        const media = await db.media.findUniqueOrThrow({ where: { id } });
+        const media = await db.media.findUnique({ where: { id } });
+        if (!media)
+            throw new HttpError(404, "This image is no longer in the Media library. Reload and try again.");
         const contents = await Promise.all(resources.map(r => listContent(r)));
         const [settings, seo] = await Promise.all([db.setting.findMany(), db.seoMetadata.findMany()]);
         if (JSON.stringify([contents, settings, seo]).includes(media.filename))
             throw new HttpError(409, "This image is in use. Remove it from content and settings before deleting.");
-        await unlink(mediaPath(media.filename));
+        await removeMediaFile(media.filename);
         await db.media.delete({ where: { id } });
         return NextResponse.json({ ok: true });
     }
     catch (e) {
-        return apiError(e);
+        return mediaError(e);
     }
 }
