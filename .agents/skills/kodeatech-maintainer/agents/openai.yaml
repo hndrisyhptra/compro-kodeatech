@@ -1,0 +1,6 @@
+interface:
+  display_name: "KodeaTech Maintainer"
+  short_description: "Audit dan lanjutkan website serta CMS KodeaTech"
+  default_prompt: "Gunakan $kodeatech-maintainer untuk membaca handover repository KODEA TECH, mencocokkan status dengan source, lalu menganalisis atau memperbaiki fitur sesuai permintaan tanpa menampilkan secret."
+policy:
+  allow_implicit_invocation: true

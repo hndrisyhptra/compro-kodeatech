@@ -1,5 +1,7 @@
 # KODEA TECH
 
+Untuk melanjutkan project dari akun Codex lain, mulai dari **[paket handover](docs/handover/README.md)**. Paket ini memetakan fitur, source, status perbaikan terakhir dan konteks aaPanel. Instruksi project ada di `AGENTS.md`; skill portabel ada di `.agents/skills/kodeatech-maintainer/SKILL.md`. Jangan memindahkan secret/database/media produksi melalui Git.
+
 Website company profile dan CMS penuh untuk target VPS/aaPanel. Stack: Next.js 16 App Router, React 19, TypeScript strict, Tailwind CSS 4, Framer Motion, Lucide, Prisma 6, MySQL 8, Tiptap, dan Sharp. Rendering public dilakukan di server; konten diambil dari database, bukan fallback hardcode di komponen.
 
 ## 1. Installation

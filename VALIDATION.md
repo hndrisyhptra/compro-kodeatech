@@ -1,5 +1,7 @@
 # Hasil validasi KODEA TECH
 
+Dokumen ini menyimpan **riwayat pemeriksaan bertanggal**, bukan bukti bahwa setiap perubahan terbaru sudah diuji. Untuk kondisi terbaru, laporan pemilik pada VPS, dan pekerjaan media yang belum selesai, baca **[handover STATUS](docs/handover/STATUS.md)**. Preferensi terbaru pemilik: testing aplikasi dilakukan sendiri di browser.
+
 Tanggal: 5 Oktober 2026.
 
 | Pemeriksaan | Hasil |
